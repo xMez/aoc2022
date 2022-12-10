@@ -23,6 +23,14 @@ pub fn solve(hand: &str) -> u16 {
     }
 }
 
+pub fn rock_paper_scissors(input: &mut impl Read) -> Result<u16, Error> {
+    let mut buffer = "".to_string();
+
+    input.read_to_string(&mut buffer)?;
+    let score: u16 = buffer.lines().map(|x| solve(x)).sum();
+    Ok(score)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -35,6 +43,12 @@ mod tests {
         assert_eq!(result, 1);
         result = solve("C Z");
         assert_eq!(result, 6)
+    }
+
+    #[test]
+    fn test_rock_paper_scissors() {
+        let result = rock_paper_scissors(&mut "A Y\nB X\nC Z\n".as_bytes()).unwrap();
+        assert_eq!(result, 15)
     }
 }
 
@@ -50,5 +64,6 @@ fn main() -> io::Result<()> {
     let args = Io::parse();
     let mut input = File::open(args.file).expect("Unable to open file");
     let mut output = File::create(args.out).expect("Unable to create file");
-    todo!();
+    let score = rock_paper_scissors(&mut input).unwrap();
+    output.write_fmt(format_args!("Score: {}\n", score))
 }
