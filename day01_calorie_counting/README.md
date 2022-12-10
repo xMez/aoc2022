@@ -62,3 +62,15 @@ Second we split the resulting vector at each `0` value and sum each Elf's Calori
 Thirdly we get the index of the Elf who is carrying the most Calories by adding an enumerator to the iterator when we compare the values using `max_by` so we can select which we want to compare. To then get the index for the Elf we apply a `map` to get the index value from the result of `max_by`, as this is an `Optional` we have to use `unwrap` to get the value.
 
 The number of the Elf and how many Calories they are carrying gets written to the output file.
+
+### Part 2
+
+For this I realized that I did not need to implement which Elf was carrying the most Calories, just how much they were carrying.
+
+Refactoring of `count_calories` was done to instead make it process and sort the Calories in decending order.
+
+A new function was implemented to sum the best Elves given a sorted vector in decending order. The sum was done by slicing the vector, this is the reason I choose to use decending order as slicing is simpler from the beginning.
+
+The new function is used to get both the top Elf and the total amount of Calories carried by the top three Elves.
+
+Some functionality is lost, like getting which Elf was carrying what but as that was not needed for the solution it is fine.

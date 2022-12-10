@@ -3,31 +3,25 @@ use std::io::{self, Error, Read, Write};
 
 use clap::Parser;
 
-pub fn calorie_counting(input: &mut impl Read, output: &mut impl Write) -> Result<(), Error> {
+pub fn sort_calories(input: &mut impl Read) -> Result<Vec<u32>, Error> {
     let mut buffer = "".to_string();
 
     input.read_to_string(&mut buffer)?;
-    let calories: Vec<u32> = buffer
+    let raw_data: Vec<u32> = buffer
         .split_terminator("\n")
         .map(|x| x.parse().unwrap_or(0))
         .collect();
-    let v: Vec<_> = calories
+    let mut calories: Vec<u32> = raw_data
         .split(|&e| e == 0)
         .map(|x| x.iter().sum::<u32>())
         .collect();
-    let index_of_max: usize = v
-        .iter()
-        .enumerate()
-        .max_by(|(_, a), (_, b)| (*a).cmp(*b))
-        .map(|(index, _)| index)
-        .unwrap();
-    output.write_fmt(format_args!(
-        "Elf {} is carrying the most Calories with {}.",
-        index_of_max,
-        v.get(index_of_max).unwrap()
-    ))?;
+    calories.sort_by(|a, b| b.cmp(a));
+    Ok(calories)
+}
 
-    Ok(())
+pub fn sum_top_elves(calories: &Vec<u32>, elves: usize) -> u32 {
+    let sum: u32 = calories[..elves].iter().sum();
+    sum
 }
 
 #[cfg(test)]
@@ -35,11 +29,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn writes_upcased_input_to_output() {
-        let mut output: Vec<u8> = Vec::new();
+    fn sorted_calories() {
+        let sorted = sort_calories(&mut "3000\n\n2000\n2000".as_bytes()).unwrap();
+        assert_eq!(sorted, vec![4000, 3000]);
+    }
 
-        calorie_counting(&mut "2000\n2000\n\n3000".as_bytes(), &mut output).unwrap();
-        assert_eq!(output, b"Elf 0 is carrying the most Calories with 4000.");
+    #[test]
+    fn sum_elves() {
+        let sum = sum_top_elves(&vec![1, 2, 3], 2);
+        assert_eq!(sum, 3);
     }
 }
 
@@ -55,6 +53,10 @@ fn main() -> io::Result<()> {
     let args = Io::parse();
     let mut input = File::open(args.file).expect("Unable to open file");
     let mut output = File::create(args.out).expect("Unable to create file");
-    calorie_counting(&mut input, &mut output)
-    // calorie_counting(&mut io::stdin(), &mut io::stdout())
+    let calories = sort_calories(&mut input).unwrap();
+    output.write_fmt(format_args!(
+        "Nr 1: {}\nTop 3: {}\n",
+        sum_top_elves(&calories, 1),
+        sum_top_elves(&calories, 3)
+    ))
 }
